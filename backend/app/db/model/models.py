@@ -12,6 +12,10 @@ class OrderStatus(enum.Enum):
     COMPLETED = "Completed"
     CANCELLED = "Cancelled"
 
+class UserRole(enum.Enum):
+    CUSTOMER = "customer"
+    ADMIN = "admin"
+
 
 # User Model
 class User(Base):
@@ -23,6 +27,7 @@ class User(Base):
     hashed_password = Column(String(255), nullable=False)
     hostel_block = Column(String(50), nullable=False)
     room_number = Column(String(50), nullable=False)
+    role = Column(String(50), nullable=False, default=UserRole.CUSTOMER)
     is_outside_campus = Column(Boolean, nullable=False)
     created_at = Column(DateTime, nullable=False, default=func.now())
 

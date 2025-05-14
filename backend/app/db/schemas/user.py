@@ -7,6 +7,7 @@ class UserCreate(BaseModel):
     password: str
     hostel_block: str
     room_number: str
+    role: str
     is_outside_campus: bool
     full_name: str
     created_at: Optional[datetime] = None
@@ -17,6 +18,7 @@ class UserOut(BaseModel):
     full_name: str
     hostel_block: str
     room_number: str
+    role: str
     is_outside_campus: bool
     created_at: Optional[datetime] = None
     
