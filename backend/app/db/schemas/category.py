@@ -9,8 +9,13 @@ class CategoryBase(BaseModel):
     name: str
     description: str
 
+class CategoryGet(BaseModel):
+    name: str
+
 class CategoryOut(CategoryBase):
     id: int
+    name: str
+    description: str
     created_at: datetime
 
     class Config:

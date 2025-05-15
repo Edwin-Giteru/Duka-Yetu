@@ -102,7 +102,8 @@ async def update_user(
         existing_user =  db.query(User).filter(User.email == updated_data["email"]).first()
         if existing_user and existing_user.id != current_user.id:
             raise HTTPException(status_code=400, detail="Email already registered")
-        
+    
+        current_user.email = updated_data["email"]        
 
     if "hostel_block" in updated_data  or "room_number" in updated_data:
         new_block = updated_data.get("hostel_block", current_user.hostel_block)
@@ -151,3 +152,21 @@ async def update_password(
     db.commit()
     db.refresh(current_user)
     return {"message": "Password updated successfully"}
+
+# Delete user by ID
+@router.delete("/delete_user/{user_id}")
+async def delete_user(
+    user_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    if current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="You are not authorized to perform this action")
+    
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    db.delete(user)
+    db.commit()
+    return {"detail": "User deleted successfully"}

@@ -18,3 +18,10 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     return user
+
+# Check if current user is admin
+def get_current_active_user(current_user: User = Depends(get_current_user)):
+    if current_user.role == "admin":
+        return current_user
+    else:
+        raise HTTPException(status_code=403, detail="You are not authorized to perform this action")
