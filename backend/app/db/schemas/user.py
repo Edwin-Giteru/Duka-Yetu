@@ -24,12 +24,10 @@ class UserOut(BaseModel):
     
 class UserUpdate(BaseModel):
     email: Optional[EmailStr] = None
-    password: Optional[str] = None
+    hashed_password: Optional[str] = None
     hostel_block: Optional[str] = None
     room_number: Optional[str] = None
-    is_outside_campus: Optional[bool] = None
-    full_name: Optional[str] = None
-
+    is_outside_campus: Optional[bool] = None    
 
     class Config:
         orm_mode = True
