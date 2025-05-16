@@ -1,10 +1,10 @@
 from backend.app.db.create_engine import get_db
-from backend.app.db.model.models import Category
+from backend.app.db.model.models import Category, Product
 from backend.app.db.schemas.category import CategoryCreate, CategoryOut, CategoryGet
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List
-from backend.app.auth.dependencies import get_current_active_user, get_current_user
+from backend.app.Controllers.auth.dependencies import get_current_active_user, get_current_user
 from backend.app.db.model.models import User
 
 router = APIRouter(tags=["Category"], dependencies=[Depends(get_db)])
@@ -106,3 +106,17 @@ async def delete_category(
         return {"detail": "Category deleted successfully"}
     else:
         raise HTTPException(status_code=403, detail="You are not authorized to perform this action")
+
+@router.get("/get_products_related_to_this_category{category_id}")
+async def get_products_for_this_category(
+    category_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    if current_user.role == "admin":
+        products_under_category = db.query(Product).filter(Product.category_id == category_id).all()
+        if not products_under_category:
+            raise HTTPException(status_code=404, detail="No product found for this category")
+        return products_under_category
+    else:
+        raise HTTPException(status_code=403, detail="You are not authorized to perform  this task")

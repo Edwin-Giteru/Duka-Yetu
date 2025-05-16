@@ -17,8 +17,8 @@ class FeedbackOut(BaseModel):
     created_at: datetime
 
     class Config:
-        orm_mode = True
-        schema_extra = {
+        from_attributes = True
+        json_schema_extra = {
             "example": {
                 "id": 1,
                 "user_id": 1,

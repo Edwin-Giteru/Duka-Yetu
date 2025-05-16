@@ -12,8 +12,8 @@ class OrderItemOut(BaseModel):
     subtotal: float
 
     class Config:
-        orm_mode = True
-        schema_extra = {
+        from_attributes = True
+        json_schema_extra = {
             "example": {
                 "id": 1,
                 "product_id": 1,

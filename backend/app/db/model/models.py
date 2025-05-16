@@ -43,9 +43,10 @@ class Product(Base):
     name = Column(String(100), index=True)
     description = Column(Text, nullable=True)
     price = Column(Float, nullable=False)
-    stock = Column(Integer, nullable=False)
+    quantity = Column(Integer, nullable=False)
+    stock = Column(Integer, nullable=False, default=0)    
     category_id = Column(Integer, ForeignKey('categories.id'), nullable=False)
-    image_url = Column(String(100), nullable=True)
+    image_url = Column(String(100), nullable=False)
     created_at = Column(DateTime, nullable=False, default=func.now())
 
     category = relationship("Category", back_populates="products")
