@@ -113,6 +113,9 @@ async def get_products_for_this_category(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
+    """
+    Getting products related to this category
+    """
     if current_user.role == "admin":
         products_under_category = db.query(Product).filter(Product.category_id == category_id).all()
         if not products_under_category:

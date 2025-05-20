@@ -1,11 +1,12 @@
 from backend.app.db.create_engine import get_db
 from backend.app.db.model.models import Product
-from backend.app.db.schemas.product import ProductCreate, ProductOut
-from fastapi import APIRouter, Depends, HTTPException
+from backend.app.db.schemas.product import ProductCreate, ProductOut, ProductUpdate
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from backend.app.Controllers.auth.dependencies import  get_current_user
 from backend.app.db.model.models import User
 from backend.app.db.model.models import Category
+from typing import List, Optional
 
 router = APIRouter(tags=["Product"], dependencies=[Depends(get_db)])
 
@@ -39,10 +40,11 @@ async def create_product(
         db.refresh(new_product)
         return new_product
     
+    
 @router.put("/update_product_details{product_id}", response_model=ProductOut)
 async def update_product_details(
     product_id: int,
-    product: ProductCreate,
+    product: ProductUpdate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
@@ -64,3 +66,64 @@ async def update_product_details(
         return product_exists
     else:
         raise HTTPException(status_code=403, detail="You are not authorized to perform this task")
+
+@router.get("/list_products", response_model=List[ProductOut])
+async def list_products(
+    db: Session = Depends(get_db),
+    category_id: Optional[int] = Query(None),
+    min_price: Optional[float] = Query(None),
+    max_price: Optional[float] = Query(None),
+    search: Optional[str] = Query(None)
+):
+    query = db.query(Product)
+
+    if category_id:
+        query = query.filter(Product.category_id == category_id)
+
+    if min_price:
+        query = query.filter(Product.price >= min_price)
+
+    if max_price:
+        query = query.filter(Product.price <= max_price)
+    
+    if search:
+        search_term = f"%{search.lower()}%"
+        query = query.filter(
+            Product.name.ilike(search_term) | Product.description.ilike(search_term)
+
+        )
+    
+    return query.all()
+
+@router.get("/list_products_by_id{product_id}",response_model=ProductOut)
+async def list_a_product_by_id(
+    product_id: int,
+    db: Session = Depends(get_db),   
+):
+    query = db.query(Product)
+
+    product_exists = query.filter(Product.id == product_id).first()
+    if not product_exists:
+        raise HTTPException(status_code=404, detail="Product doesnot exist")
+    
+    return product_exists
+
+
+@router.delete("/delete_a_product{product_id}")
+async def delete_a_product(
+    product_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    if current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="You are not authorized to perform this task")
+    
+    product = db.query(Product).filter(Product.id == product_id).first()
+
+    if not product:
+        raise HTTPException(status_code=404, detail="Product specified was not found")
+    
+    db.delete(product)
+    db.commit()
+
+    return {"message": "Product deleted successfully"}

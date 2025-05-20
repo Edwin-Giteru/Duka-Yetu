@@ -20,7 +20,7 @@ class ProductUpdate(BaseModel):
     price: Optional[float] = Field(None, gt=0, example=999.99)
     in_stock: Optional[int] = Field(None, ge=0, example=10)
     category_id: Optional[int] = Field(None, example=1)
-    image_url: Optional[str] = Field(None, example="https://vikombe.com/images")
+    image_url: Optional[str] = Field(..., example="https://vikombe.com/images")
     
 class ProductOut(ProductBase):
     pass

@@ -2,6 +2,8 @@ from sqlalchemy import Column, Integer, String, Float, DateTime, Boolean, Foreig
 from sqlalchemy.orm import relationship, declarative_base
 from sqlalchemy.sql import func
 import enum
+
+from backend.app.db.schemas import order_item
 Base = declarative_base()
 
 
@@ -11,6 +13,11 @@ class OrderStatus(enum.Enum):
     PENDING = "Pending"
     COMPLETED = "Completed"
     CANCELLED = "Cancelled"
+
+class OrderPayment(enum.Enum):
+    PENDING= "Pending"
+    COMPLETED ="Completed"
+    CANCELLED ="Cancelled"
 
 class UserRole(enum.Enum):
     CUSTOMER = "customer"
@@ -31,11 +38,11 @@ class User(Base):
     is_outside_campus = Column(Boolean, nullable=False)
     created_at = Column(DateTime, nullable=False, default=func.now())
 
-    orders = relationship("Order", back_populates="user", cascade="all, delete-orphan")
-    feedback = relationship("Feedback", back_populates="user", cascade="all, delete-orphan")
-
-
+    orders = relationship("Order", back_populates="user")
+    feedback = relationship("Feedback", back_populates="user")
+    order_items = relationship("OrderItem", back_populates="user")
 # Product Model
+
 class Product(Base):
     __tablename__ = 'products'
 
@@ -73,9 +80,13 @@ class Order(Base):
     user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
     status = Column(Enum(OrderStatus), nullable=False, default=OrderStatus.PENDING)
     created_at = Column(DateTime, nullable=False, default=func.now())
+    delivery_address = Column(String(100), nullable=False) 
+    total_price = Column(Float, nullable=False)  
+    payment_status = Column(Enum(OrderPayment), nullable=False, default=OrderPayment.PENDING) 
 
     user = relationship("User", back_populates="orders")
     order_items = relationship("OrderItem", back_populates="order", cascade="all, delete-orphan")
+
 
 
 # OrderItem Model
@@ -83,13 +94,15 @@ class OrderItem(Base):
     __tablename__ = 'order_items'
 
     id = Column(Integer, primary_key=True, index=True)
-    order_id = Column(Integer, ForeignKey('orders.id'), nullable=False)
+    order_id = Column(Integer, ForeignKey('orders.id'), nullable=True)  # <-- Add this
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=True)    # <-- Add this
     product_id = Column(Integer, ForeignKey('products.id'), nullable=False)
     quantity = Column(Integer, nullable=False)
     price_per_item = Column(Float, nullable=False)
     subtotal = Column(Float, nullable=False)
 
     order = relationship("Order", back_populates="order_items")
+    user = relationship("User", back_populates="order_items")  # <-- Add this
     product = relationship("Product", back_populates="order_items")
 
 
