@@ -2,7 +2,6 @@ from pydantic import BaseModel, Field
 from typing import Optional, List
 from datetime import datetime
 
-# Import this from your order_item.py or define here
 class OrderItemOut(BaseModel):
     id: int
     product_id: int

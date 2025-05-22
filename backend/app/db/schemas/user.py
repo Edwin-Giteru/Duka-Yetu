@@ -1,18 +1,19 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field
 from typing import Optional
 from datetime import datetime
 
 class UserCreate(BaseModel):
-    email: EmailStr
-    password: str
-    hostel_block: str
-    room_number: str
+    email: EmailStr = Field(..., example="")
+    password: str = Field(..., example="")
+    hostel_block: str = Field(..., alias="hostel-block", example="")
+    room_number: str = Field(..., alias="room-number", example="")
     role: str
     is_outside_campus: bool
-    full_name: str
+    full_name: str = Field(..., example=" ")
     created_at: Optional[datetime] = None
 
-
+    class Config:
+        allow_population_by_field_name=True
 class UserOut(BaseModel):
     email: EmailStr
     full_name: str

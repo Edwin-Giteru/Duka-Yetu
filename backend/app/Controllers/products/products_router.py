@@ -95,7 +95,7 @@ async def list_products(
     
     return query.all()
 
-@router.get("/list_products_by_id{product_id}",response_model=ProductOut)
+@router.get("/list_product_by_id{product_id}",response_model=ProductOut)
 async def list_a_product_by_id(
     product_id: int,
     db: Session = Depends(get_db),   

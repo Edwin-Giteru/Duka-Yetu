@@ -27,8 +27,13 @@ async def register(user: UserCreate, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail="Email already registered")
     if not user.hostel_block or not user.room_number:
         raise HTTPException(status_code=400, detail="Hostel block and room number are required")
-    if user.role not in ["customer", "admin"]:
-        raise HTTPException(status_code=400, detail="Invalid role. Must be 'customer' or 'admin'")
+    # if user.role not in ["customer", "admin"]:
+    #     raise HTTPException(status_code=400, detail="Invalid role. Must be 'customer' or 'admin'")
+    if user.hostel_block and user.room_number:
+        user.is_outside_campus = False
+    else:
+        user.is_outside_campus = True
+
     if user.is_outside_campus is None:
         raise HTTPException(status_code=400, detail="is_outside_campus must be a boolean value")
     if user.password is None:
@@ -41,10 +46,11 @@ async def register(user: UserCreate, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail="Password must contain at least one letter")
     if not any(char in "!@#$%^&*()-_+=<>?/|{}[]:;\"'`~" for char in user.password):
         raise HTTPException(status_code=400, detail="Password must contain at least one special character")
-    
+
+    full_name = user.full_name if user.full_name else user.email.split("@")[0]
     hashed = hash_password(user.password)
     new_user = User(
-        full_name=user.full_name,
+        full_name=full_name,
         email=user.email,
         hashed_password=hashed,
         role=user.role,

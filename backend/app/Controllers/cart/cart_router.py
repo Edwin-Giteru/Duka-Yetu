@@ -37,7 +37,7 @@ async def add_to_cart(
     cart_item = OrderItem(
         product_id=product_id,
         quantity=orderitems.quantity,
-        user_id = current_user.id,        
+        user_id = current_user.id,
         price_per_item=available_product.price,
         subtotal=available_product.price * orderitems.quantity
     )

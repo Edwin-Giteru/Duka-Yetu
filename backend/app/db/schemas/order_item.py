@@ -1,8 +1,9 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field
 
 class OrderItemCreate(BaseModel):
     product_id: int
     quantity: int
+    subtotal: float = Field(..., example= 100.98)
 
 
 class OrderItemOut(BaseModel):
