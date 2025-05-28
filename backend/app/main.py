@@ -4,6 +4,7 @@ from backend.app.Controllers.category import category_router
 from backend.app.Controllers.products import products_router
 from backend.app.Controllers.Order import order_router
 from backend.app.Controllers.cart import cart_router
+from backend.app.Controllers.payments import payment_router
 
 
 app = FastAPI()
@@ -13,3 +14,4 @@ app.include_router(category_router.router)
 app.include_router(products_router.router)
 app.include_router(order_router.router)
 app.include_router(cart_router.router)
+app.include_router(payment_router.router)

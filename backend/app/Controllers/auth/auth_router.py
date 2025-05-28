@@ -44,9 +44,18 @@ async def register(user: UserCreate, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail="Password must contain at least one digit")
     if not any(char.isalpha() for char in user.password):
         raise HTTPException(status_code=400, detail="Password must contain at least one letter")
-    if not any(char in "!@#$%^&*()-_+=<>?/|{}[]:;\"'`~" for char in user.password):
+    if not any(char in "!@#$%^&*()-_+=<>?/|{}[].:;\"'`~" for char in user.password):
         raise HTTPException(status_code=400, detail="Password must contain at least one special character")
-
+    phone_number_exists = db.query(User).filter(User.phone_number == user.phone_number).first()
+    if phone_number_exists:
+        raise HTTPException(status_code=400, detail="Phone number already registered")
+    if user.phone_number is None:
+        raise HTTPException(status_code=400, detail="Phone number is required")
+    if user.phone_number and len(user.phone_number) < 10:
+        raise HTTPException(status_code=400, detail="Phone number must be at least 10 digits long")
+    if not user.phone_number.startswith("254") and len(user.phone_number) == 12:
+        raise HTTPException(status_code=400, detail="Phone number must start with '254' and be 12 digits long")
+    
     full_name = user.full_name if user.full_name else user.email.split("@")[0]
     hashed = hash_password(user.password)
     new_user = User(
@@ -55,6 +64,7 @@ async def register(user: UserCreate, db: Session = Depends(get_db)):
         hashed_password=hashed,
         role=user.role,
         hostel_block=user.hostel_block,
+        phone_number=user.phone_number,
         room_number=user.room_number,
         is_outside_campus=user.is_outside_campus
     )
@@ -104,12 +114,27 @@ async def update_user(
         """ You cannot update password using this endpoint. """
         raise HTTPException(status_code=400, detail="Password cannot be updated using this endpoint.")
     
+    
     if "email" in updated_data:
         existing_user =  db.query(User).filter(User.email == updated_data["email"]).first()
         if existing_user and existing_user.id != current_user.id:
             raise HTTPException(status_code=400, detail="Email already registered")
     
-        current_user.email = updated_data["email"]        
+        current_user.email = updated_data["email"]    
+    
+    if "phone_number" in updated_data:
+        phone_number = str(updated_data["phone_number"]).strip()
+        if len(phone_number) < 12:
+            raise HTTPException(status_code=400, detail="Phone number must be at least 12 digits long")
+        if not phone_number.startswith("254"):
+            raise HTTPException(status_code=400, detail="Phone number must start with '254'")
+        
+        existing_user = db.query(User).filter(User.phone_number == phone_number).first()
+        if existing_user and existing_user.id != current_user.id:
+            raise HTTPException(status_code=400, detail="Phone number already registered")
+
+        current_user.phone_number = phone_number
+ 
 
     if "hostel_block" in updated_data  or "room_number" in updated_data:
         new_block = updated_data.get("hostel_block", current_user.hostel_block)

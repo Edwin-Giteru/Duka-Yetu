@@ -1,33 +1,37 @@
-from pydantic import BaseModel, EmailStr, Field
-from typing import Optional
-from datetime import datetime
+from pydantic import BaseModel, field_validator, Field
+from typing import Annotated, Dict, Any, Optional
 
-class PaymentCreate(BaseModel):
+class PaymentRequest(BaseModel):
     order_id: int
-    payment_method: str
-    amount: float = Field(..., gt=0, description="Amount to be paid")
-    status: str = "Pending"  # Default status is 'Pending'
-    transaction_id: Optional[str] = None
+    amount: Annotated[float, Field(gt=0, le=500000, description="Payment amount in KES")]
+    
+    @field_validator('amount')
+    @classmethod
+    def validate_amount(cls, v: float) -> float:
+        """Validate payment amount constraints"""
+        if v <= 0:
+            raise ValueError('Amount must be greater than 0')
+        if v > 70000:  # M-Pesa transaction limit
+            raise ValueError('Amount exceeds M-Pesa transaction limit (KES 70,000)')
+        return round(v, 2)
 
-class PaymentOut(BaseModel):
-    id: int
+# Alternative approach using Field constraints (Pydantic v2)
+class PaymentRequestSimple(BaseModel):
     order_id: int
-    payment_method: str
-    amount: float
-    status: str
-    transaction_id: Optional[str] = None
-    created_at: datetime
+    amount: Annotated[float, Field(
+        gt=0, 
+        le=70000,
+        description="Payment amount in KES (1-70000)",
+        examples=[100.50, 1500.00]
+    )]
+    
+    # Pydantic v2 automatically rounds and validates based on Field constraints
 
-    class Config:
-        from_attributes = True
-        json_schema_extra = {
-            "example": {
-                "id": 1,
-                "order_id": 1,
-                "payment_method": "Credit Card",
-                "amount": 39.98,
-                "status": "Completed",
-                "transaction_id": "txn_1234567890",
-                "created_at": "2023-10-01T12:00:00Z"
-            }
-        }
+class PaymentResponse(BaseModel):
+    success: bool
+    message: str
+    checkout_request_id: Optional[str] = None
+    merchant_request_id: Optional[str] = None
+
+class CallbackData(BaseModel):
+    Body: Dict[Any, Any]
