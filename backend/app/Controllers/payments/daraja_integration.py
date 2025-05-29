@@ -1,10 +1,12 @@
 import os
 import base64
+from re import S
 import requests
 from datetime import datetime
 from typing import Optional, Dict, Any
 from fastapi import FastAPI, HTTPException, Depends, BackgroundTasks
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+import time
 
 class DarajaAPI:
     def __init__(self):
@@ -20,8 +22,8 @@ class DarajaAPI:
     def get_access_token(self) -> str:
         try:
              #    check if current token is still valid
-            if self.access_token and self.token_expires_at and datetime.now() < self.token_expires_at:
-                 return self.access_token
+            if self.access_token and self.token_expires_at and time.time() < self.token_expires_at:
+                return self.access_token
              
             #  create credentials for authentication
             credentials = f"{self.consumer_key}:{self.consumer_secret}"
@@ -57,14 +59,14 @@ class DarajaAPI:
             )
     def generate_password(self) -> tuple:
         try:
-            if not self.business_shortcode or not self.passkey:
+            if not os.getenv("DARAJA_BUSINESS_SHORT_CODE")or not os.getenv("DARAJA_PASS_KEY"):
                 raise HTTPException(
                     status_code=400,
                     detail="Business Shortcode and Passkey must be set in environment variables"
                 )
             timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
             password = base64.b64encode(
-                f"{self.business_shortcode}{self.passkey}{timestamp}".encode()
+                f"{os.getenv("DARAJA_BUSINESS_SHORT_CODE")}{os.getenv("DARAJA_PASS_KEY")}{timestamp}".encode()
             ).decode()
             return password, timestamp
         except Exception as e:
@@ -96,22 +98,22 @@ class DarajaAPI:
                 )
 
             payload = {
-                "BusinessShortCode": self.business_shortcode,
+                "BusinessShortCode": os.getenv("DARAJA_BUSINESS_SHORTCODE"),
                 "Password": password,
                 "Timestamp": timestamp,
                 "TransactionType": "CustomerBuyGoodsOnline",
                 "Amount": amount,
                 "PartyA": phone_number,
-                "PartyB": self.business_shortcode,
+                "PartyB": os.getenv("DARAJA_BUSINESS_SHORTCODE"),
                 "PhoneNumber": phone_number,
-                "CallBackURL": callback_url,
+                "CallBackURL": os.getenv("DARAJA_CALLBACK_URL", callback_url),
                 "IdentifierType":"2",
                 "AccountReference": "DukaYetu Account",
                 "TransactionDesc": "Payment for Order #{order_id}".format(order_id=order_id)
             }
 
             response = requests.post(
-                f"{self.base_url}/mpesa/stkpush/v1/processrequest",
+                f"{os.getenv("DARAJA_BASE_URL")}/mpesa/stkpush/v1/processrequest",
                 json=payload,
                 headers=headers,
                 timeout=30

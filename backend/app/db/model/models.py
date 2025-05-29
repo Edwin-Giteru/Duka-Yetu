@@ -87,7 +87,7 @@ class Order(Base):
     user_id = Column(Integer,ForeignKey("users.id"), index=True)
     delivery_address = Column(String(100), nullable=False)
     total_price = Column(Float, nullable=False)
-    status = Column(String(100), default=OrderStatus.PENDING.value)
+    status = Column(String(100), default=OrderPayment.PENDING.value)
     mpesa_checkout_request_id = Column(String(100), nullable=True)
     mpesa_transaction_id = Column(String(100), nullable=True)
     created_at = Column(DateTime, default=func.now())

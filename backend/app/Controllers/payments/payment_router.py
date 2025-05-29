@@ -1,3 +1,4 @@
+import os
 from fastapi import APIRouter, Depends, HTTPException, Request
 from backend.app.Controllers.payments.daraja_integration import DarajaAPI
 from backend.app.Controllers.auth.dependencies import get_current_user
@@ -26,7 +27,9 @@ async def initiate_payment(
         if not order:
             raise HTTPException(status_code=404, detail="Order not found or does not belong to the user.")
         
-        if order.payment_status != OrderPayment.PENDING.value:
+        if order.status != OrderStatus.PENDING.value or (
+             order.payment_status != OrderPayment.PENDING and order.payment_status != OrderPayment.PENDING.value
+       ):
             raise HTTPException(status_code=400, detail="Order is already paid.")
 
         if abs(payment_request.amount - order.total_price) > 0.01:
@@ -38,7 +41,8 @@ async def initiate_payment(
         stk_response = daraja.initiate_stk_push(
             phone_number=current_user.phone_number,
             amount=order.total_price,           
-            order_id=order.id
+            order_id=order.id,
+            callback_url=os.getenv("DARAJA_CALLBACK_URL", "https://yourdomain.com/api/payments/callback")
         )
 
         if stk_response.get("ResponseCode")  == 0:
