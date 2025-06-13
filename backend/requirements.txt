@@ -1,0 +1,30 @@
+# FastAPI framework
+fastapi
+
+# ASGI server
+uvicorn[standard]
+
+# SQLAlchemy for ORM
+sqlalchemy
+
+# MySQL driver
+mysql-connector-python
+
+# Pydantic (comes with FastAPI)
+pydantic
+
+# Alembic for migrations
+alembic
+
+# CORS (for React frontend)
+fastapi[all]
+
+# Security
+python-jose[cryptography]
+passlib[bcrypt]
+
+# Email
+aiosmtplib
+
+# Environment variable support
+python-dotenv
