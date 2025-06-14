@@ -1,9 +1,11 @@
 from backend.app.models import Feedback, User, Product, Order
 from backend.app.schema import FeedbackCreate, FeedbackOut
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 from backend.app.dependencies import get_current_user
 from backend.app.create_engine import get_db
 from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.future import select
+from sqlalchemy.orm import selectinload
 
 
 router = APIRouter(tags=["Feedback"], dependencies=[Depends(get_db)])
@@ -12,15 +14,17 @@ router = APIRouter(tags=["Feedback"], dependencies=[Depends(get_db)])
 async def give_feedback(
     feedback: FeedbackCreate,
     product_id: int,
-    db: Session = Depends(get_db),   
+    db: AsyncSession = Depends(get_db),   
     current_user: User = Depends(get_current_user),    
 ):
     if current_user.role != "customer":
         raise HTTPException(status_code=403, detail="You are not authorized to perform this action")
-    available_product = db.query(Product).filter(Product.id == product_id).first()
+    products = await db.execute(select(Product).where(Product.id == product_id))
+    available_product = products.scalars().first()
     if not available_product: 
         raise HTTPException(status_code=404, detail="The product is unavailable at the moment")
-    get_orders_for_current_user = db.query(Order).filter(Order.user_id == current_user.id).all()
+    orders_for_current_user = await db.execute(select(Order).where(Order.user_id == current_user.id))
+    get_orders_for_current_user = orders_for_current_user.scalars().all()
     if not get_orders_for_current_user:
         raise HTTPException(status_code=404, detail="No orders found for this specific user")  
     order_id = get_orders_for_current_user[0].id
@@ -34,7 +38,7 @@ async def give_feedback(
     )
 
     db.add(new_feedback)
-    db.commit()
-    db.refresh(new_feedback)
+    await db.commit()
+    await db.refresh(new_feedback)
 
     return new_feedback

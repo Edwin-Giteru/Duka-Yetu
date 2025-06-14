@@ -101,6 +101,11 @@ class OrderBase(BaseModel):
     payment_status: str = Field(..., example="Pending") 
     order_items: List[OrderItemOut] 
 
+    class Config:
+        from_attributes = True
+        orm_mode = True
+        
+           
 class OrderCreate(OrderBase):
     pass
 
@@ -114,6 +119,7 @@ class OrderOut(OrderBase):
     created_at: datetime
 
     class Config:
+        orm_mode = True
         from_attributes = True
 
 class PaymentRequest(BaseModel):
