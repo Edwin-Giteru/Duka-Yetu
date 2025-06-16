@@ -103,7 +103,7 @@ class OrderBase(BaseModel):
 
     class Config:
         from_attributes = True
-        orm_mode = True
+       
         
            
 class OrderCreate(OrderBase):
@@ -118,8 +118,7 @@ class OrderOut(OrderBase):
     id: int
     created_at: datetime
 
-    class Config:
-        orm_mode = True
+    class Config:      
         from_attributes = True
 
 class PaymentRequest(BaseModel):
@@ -205,7 +204,7 @@ class UserCreate(BaseModel):
     created_at: Optional[datetime] = None
 
     class Config:
-        allow_population_by_field_name=True
+        validate_by_name = True
         
 class UserOut(BaseModel):
     email: EmailStr
