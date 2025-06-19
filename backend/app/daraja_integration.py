@@ -36,7 +36,7 @@ def generate_access_token():
         encode_credentials = base64.b64encode(f"{CONSUMER_KEY}:{CONSUMER_SECRET}".encode()).decode()
 
         headers = {
-            "Authorization": f"Basic{encode_credentials}",
+            "Authorization": f"Basic {encode_credentials}",
             "Content-Type": "application/json"
         }
 
@@ -69,10 +69,10 @@ def sendStkPush(phone_number: str, amount: float, order_id: int, callback_url: s
         "Password": generate_password(),
         "Timestamp": generate_timestamp(),
         "TransactionType": "CustomerBuyGoodsOnline",
-        "Amount": 1,  # Example amount
-        "PartyA": "2540707913754",  # Example phone number
+        "Amount": amount,  # Example amount
+        "PartyA": phone_number,  # Example phone number
         "PartyB": short_code,
-        "PhoneNumber": "254707913754",  # Example phone number
+        "PhoneNumber": phone_number,  # Example phone number
         "CallBackURL": f"{URL}/callback",
         "AccountReference": "Test123",
         "TransactionDesc": "Payment for testing"
